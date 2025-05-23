@@ -24,129 +24,6 @@ int main() {
     return 0;
 }
 
-Product *findProduct(FILE *file, int id) {
-    static Product p;
-    while (fread(&p, sizeof(Product), 1, file)) {
-        if (p.id == id) {
-            return &p;
-        }
-    }
-    return NULL;
-}
-
-void printProduct(Product p) {
-    printf("ID: %d | Name: %s | Price: %.2f | Stock: %d\n", p.id, p.name, p.price, p.stock);
-}
-
-void deleteProduct() {
-    FILE *file = fopen(FILE_NAME, "rb");
-    FILE *temp = fopen("temp.dat", "wb");
-
-    if (!file || !temp) {
-        printf("Failed to open files!\n");
-        if (file) fclose(file);
-        if (temp) fclose(temp);
-        return;
-    }
-
-    int id;
-    printf("Enter product ID to delete: ");
-    scanf("%d", &id);
-
-    Product p;
-    int found = 0;
-    while (fread(&p, sizeof(Product), 1, file)) {
-        if (p.id == id) {
-            found = 1;
-            continue;
-        }
-        fwrite(&p, sizeof(Product), 1, temp);
-    }
-
-    fclose(file);
-    fclose(temp);
-
-    if (found) {
-        remove(FILE_NAME);
-        rename("temp.dat", FILE_NAME);
-        printf("Product deleted successfully.\n");
-    } else {
-        remove("temp.dat");
-        printf("Product not found.\n");
-    }
-}
-
-void listProducts() {
-    FILE *file = fopen(FILE_NAME, "rb");
-    if (!file) {
-        printf("Failed to open file!\n");
-        return;
-    }
-
-    Product p;
-    while (fread(&p, sizeof(Product), 1, file)) {
-        printProduct(p);
-    }
-
-    fclose(file);
-}
-
-void updateProduct() {
-    FILE *file = fopen(FILE_NAME, "rb+");
-    if (!file) {
-        printf("Failed to open file!\n");
-        return;
-    }
-
-    int id;
-    printf("Enter product ID to update: ");
-    scanf("%d", &id);
-
-    Product *p = findProduct(file, id);
-    if (p) {
-        printf("Enter new stock value: ");
-        scanf("%d", &p->stock);
-        fseek(file, -sizeof(Product), SEEK_CUR);
-
-        if (fwrite(p, sizeof(Product), 1, file)) {
-            printf("Product stock updated successfully!\n");
-        } else {
-            printf("Error while updating the product.\n");
-        }
-    } else {
-        printf("Product not found.\n");
-    }
-
-    fclose(file);
-}
-
-void addProduct() {
-    FILE *file = fopen(FILE_NAME, "ab");
-    if (!file) {
-        printf("Failed to open file!\n");
-        return;
-    }
-
-    Product p;
-
-    printf("Enter product ID: ");
-    scanf("%d", &p.id);
-    printf("Enter product name: ");
-    scanf("%s", p.name);
-    printf("Enter product price: ");
-    scanf("%f", &p.price);
-    printf("Enter product stock: ");
-    scanf("%d", &p.stock);
-
-    if (fwrite(&p, sizeof(Product), 1, file)) {
-        printf("Product added successfully!\n");
-    } else {
-        printf("Error occurred while adding the product.\n");
-    }
-
-    fclose(file);
-}
-
 void showMenu() {
     int choice;
     do {
@@ -175,9 +52,141 @@ void showMenu() {
                 break;
             case 5:
                 printf("Exiting...\n");
-                break;
+                return;
             default:
                 printf("Invalid selection. Please try again.\n");
         }
     } while (choice != 5);
+}
+
+Product *findProduct(FILE *file, int id) {
+    static Product p;
+    while (fread(&p, sizeof(Product), 1, file)) {
+        if (p.id == id) {
+            return &p;
+        }
+    }
+    return NULL;
+}
+
+void printProduct(Product p) {
+    printf("ID: %d | Name: %s | Price: %.2f | Stock: %d\n", p.id, p.name, p.price, p.stock);
+}
+
+void deleteProduct() {
+    FILE *file = fopen(FILE_NAME, "rb");
+    FILE *temp = fopen("temp.dat", "wb");
+
+    if (!file || !temp) {
+        printf("Failed to open files!\n");
+        if (file) fclose(file);
+        if (temp) fclose(temp);
+        showMenu();
+        return;
+    }
+
+    int id;
+    printf("Enter product ID to delete: ");
+    scanf("%d", &id);
+
+    Product p;
+    int found = 0;
+    while (fread(&p, sizeof(Product), 1, file)) {
+        if (p.id == id) {
+            found = 1;
+            continue;
+        }
+        fwrite(&p, sizeof(Product), 1, temp);
+    }
+
+    fclose(file);
+    fclose(temp);
+
+    if (found) {
+        remove(FILE_NAME);
+        rename("temp.dat", FILE_NAME);
+        printf("Product deleted successfully.\n");
+    } else {
+        remove("temp.dat");
+        printf("Product not found.\n");
+    }
+    
+    showMenu();
+}
+
+void listProducts() {
+    FILE *file = fopen(FILE_NAME, "rb");
+    if (!file) {
+        printf("Failed to open file!\n");
+        showMenu();
+        return;
+    }
+
+    Product p;
+    while (fread(&p, sizeof(Product), 1, file)) {
+        printProduct(p);
+    }
+
+    fclose(file);
+    showMenu();
+}
+
+void updateProduct() {
+    FILE *file = fopen(FILE_NAME, "rb+");
+    if (!file) {
+        printf("Failed to open file!\n");
+        showMenu();
+        return;
+    }
+
+    int id;
+    printf("Enter product ID to update: ");
+    scanf("%d", &id);
+
+    Product *p = findProduct(file, id);
+    if (p) {
+        printf("Enter new stock value: ");
+        scanf("%d", &p->stock);
+        fseek(file, -sizeof(Product), SEEK_CUR);
+
+        if (fwrite(p, sizeof(Product), 1, file)) {
+            printf("Product stock updated successfully!\n");
+        } else {
+            printf("Error while updating the product.\n");
+        }
+    } else {
+        printf("Product not found.\n");
+    }
+
+    fclose(file);
+    showMenu();
+}
+
+void addProduct() {
+    FILE *file = fopen(FILE_NAME, "ab");
+    if (!file) {
+        printf("Failed to open file!\n");
+        showMenu();
+        return;
+    }
+
+    Product p;
+
+    printf("Enter product ID: ");
+    scanf("%d", &p.id);
+    printf("Enter product name: ");
+    scanf("%s", p.name);
+    printf("Enter product price: ");
+    scanf("%f", &p.price);
+    printf("Enter product stock: ");
+    scanf("%d", &p.stock);
+
+    if (fwrite(&p, sizeof(Product), 1, file)) {
+        printf("Product added successfully!\n");
+    } else {
+        printf("Error occurred while adding the product.\n");
+    }
+
+    fclose(file);
+    showMenu();
 }
